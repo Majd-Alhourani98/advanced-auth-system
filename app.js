@@ -1,5 +1,7 @@
-const express = require("express");
-const morgan = require("morgan");
+const express = require('express');
+const morgan = require('morgan');
+
+const connectDB = require('./config/db');
 
 // Express application
 const app = express();
@@ -8,16 +10,18 @@ const app = express();
 app.use(express.json());
 
 // Use Morgan middleware to log HTTP requests
-app.use(morgan('dev'))
+app.use(morgan('dev'));
 
 //  health check route
-app.get("/health", (req, res) => {
+app.get('/health', (req, res) => {
   res.status(200).json({
-    status: "ok",
+    status: 'ok',
     uptime: process.uptime(), // How long the server has been running (in seconds)
-    message: "Express server is running 🚀",
+    message: 'Express server is running 🚀',
   });
 });
+
+connectDB();
 
 // Start Server
 const PORT = 3000;

@@ -3,6 +3,7 @@ const morgan = require('morgan');
 
 const authRouter = require('./routes/auth.routes');
 const AppError = require('./errors/AppError');
+const globalErrorHandler = require('./middlewares/globalErrorHandler.middleware');
 
 // Express application
 const app = express();
@@ -28,14 +29,6 @@ app.all('*', (req, res, next) => {
   return next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
 });
 
-app.use((err, req, res, next) => {
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || 'error';
-
-  return res.status(err.statusCode).json({
-    status: err.status,
-    message: err.message,
-  });
-});
+app.use(globalErrorHandler);
 
 module.exports = app;

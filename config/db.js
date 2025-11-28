@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
 // Localhost MongoDB connection
-const DB_URI = 'mongodb://127.0.0.1:27017/auth_db';
+// const DB_URI = 'mongodb://127.0.0.1:27017/auth_db';
+const DB_URI = process.env.DATABASE_URL;
 
 const connectDB = async () => {
   try {

@@ -1,5 +1,6 @@
-const argon2 = require('argon2');
-const mongoose = require('mongoose');
+import argon2 from 'argon2';
+import mongoose from 'mongoose';
+import { nanoid } from 'nanoid';
 
 const userSchema = new mongoose.Schema(
   {
@@ -20,6 +21,7 @@ const userSchema = new mongoose.Schema(
       match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email'],
     },
 
+    username: String,
     password: {
       type: String,
       required: [true, 'Please provide a password'],
@@ -84,6 +86,23 @@ userSchema.pre('save', async function () {
   this.passwordConfirm = undefined;
 });
 
+userSchema.pre('save', async function () {
+  // Only generate username if it's missing
+  if (!this.username) {
+    // create base username from name
+    const base = this.name.replace(/\s+/g, '-').toLowerCase();
+    let candidate = base;
+
+    // Check if username exists, if yes → add random suffix
+    while (await mongoose.models.User.findOne({ username: candidate })) {
+      candidate = `${base}_${nanoid(5)}`;
+    }
+
+    // Save the unique username
+    this.username = candidate;
+  }
+});
+
 const User = mongoose.model('User', userSchema);
 
-module.exports = User;
+export default User;

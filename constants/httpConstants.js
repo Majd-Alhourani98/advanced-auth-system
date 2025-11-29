@@ -1,4 +1,4 @@
-const HTTP_STATUS = {
+export const HTTP_STATUS = {
   // Success
   OK: 200,
   CREATED: 201,
@@ -21,7 +21,7 @@ const HTTP_STATUS = {
   SERVICE_UNAVAILABLE: 503,
 };
 
-const HTTP_MESSAGE = {
+export const HTTP_MESSAGE = {
   // Success messages
   OK: 'Request successful',
   CREATED: 'Resource created successfully',
@@ -44,7 +44,7 @@ const HTTP_MESSAGE = {
   SERVICE_UNAVAILABLE: 'Service unavailable',
 };
 
-const ERROR_CODE = {
+export const ERROR_CODE = {
   BAD_REQUEST: 'BAD_REQUEST',
   AUTHENTICATION_FAILED: 'AUTHENTICATION_FAILED',
   FORBIDDEN: 'FORBIDDEN',
@@ -60,15 +60,8 @@ const ERROR_CODE = {
   DATABASE_ERROR: 'DATABASE_ERROR',
 };
 
-const RESPONSE_STATUS = {
+export const RESPONSE_STATUS = {
   SUCCESS: 'success', // for successful requests (2xx)
   FAIL: 'fail', // for client errors (4xx)
   ERROR: 'error', // for server errors (5xx)
-};
-
-module.exports = {
-  HTTP_STATUS,
-  HTTP_MESSAGE,
-  ERROR_CODE,
-  RESPONSE_STATUS,
 };

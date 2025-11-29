@@ -1,9 +1,9 @@
-const express = require('express');
-const morgan = require('morgan');
+import express from 'express';
+import morgan from 'morgan';
 
-const authRouter = require('./routes/auth.routes');
-const { NotFoundError } = require('./errors/AppError');
-const globalErrorHandler = require('./middlewares/globalErrorHandler.middleware');
+import authRouter from './routes/auth.routes.js';
+import { NotFoundError } from './errors/AppError.js';
+import globalErrorHandler from './middlewares/globalErrorHandler.middleware.js';
 
 // Express application
 const app = express();
@@ -31,4 +31,4 @@ app.all('*', (req, res, next) => {
 
 app.use(globalErrorHandler);
 
-module.exports = app;
+export default app;

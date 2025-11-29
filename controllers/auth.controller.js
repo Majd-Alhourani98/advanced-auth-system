@@ -1,9 +1,9 @@
-const User = require('../models/user.model');
-const catchAsync = require('../utils/catchAsync');
-const { HTTP_STATUS, RESPONSE_STATUS } = require('../constants/httpConstants');
-const { ValidationError } = require('../errors/AppError');
+import User from '../models/user.model.js';
+import catchAsync from '../utils/catchAsync.js';
+import { HTTP_STATUS, RESPONSE_STATUS } from '../constants/httpConstants.js';
+import { ValidationError } from '../errors/AppError.js';
 
-const signup = catchAsync(async (req, res, next) => {
+export const signup = catchAsync(async (req, res, next) => {
   const { name, email, password, passwordConfirm } = req.body;
   if (!name || !email || !password || !passwordConfirm) {
     return next(new ValidationError('Please provide your name, email, password and password confirmation.'));
@@ -16,5 +16,3 @@ const signup = catchAsync(async (req, res, next) => {
     data: { user: user },
   });
 });
-
-module.exports = { signup };

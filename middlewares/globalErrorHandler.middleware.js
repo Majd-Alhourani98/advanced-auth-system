@@ -1,5 +1,5 @@
-const { BadRequestError, ValidationError } = require('../errors/AppError');
-const { HTTP_STATUS, RESPONSE_STATUS } = require('../constants/httpConstants');
+import { BadRequestError, ValidationError } from '../errors/AppError.js';
+import { HTTP_STATUS, RESPONSE_STATUS } from '../constants/httpConstants.js';
 
 /**
  * Handle Mongoose CastError (invalid IDs)
@@ -63,7 +63,7 @@ const sendErrorProd = (err, res) => {
 /**
  * Global error handling middleware
  */
-module.exports = (err, req, res, next) => {
+export default (err, req, res, next) => {
   err.statusCode = err.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
   err.status = err.status || RESPONSE_STATUS.ERROR;
 

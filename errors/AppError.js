@@ -1,5 +1,7 @@
+const { HTTP_MESSAGE, HTTP_STATUS, ERROR_CODE } = require('../constants/httpConstants');
+
 class AppError extends Error {
-  constructor(message, statusCode = 500, code = null) {
+  constructor(message, statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR, code = ERROR_CODE.INTERNAL_SERVER_ERROR) {
     super(message);
 
     this.statusCode = statusCode;
@@ -13,88 +15,76 @@ class AppError extends Error {
 }
 
 class BadRequestError extends AppError {
-  // 400 Bad Request – general client input error
-  constructor(message = 'Bad Request') {
-    super(message, 400, 'BAD_REQUEST');
+  constructor(message = HTTP_MESSAGE.BAD_REQUEST) {
+    super(message, HTTP_STATUS.BAD_REQUEST, ERROR_CODE.BAD_REQUEST);
   }
 }
 
 class AuthenticationError extends AppError {
-  // 401 Authentication failed – invalid or missing credentials
-  constructor(message = 'Authentication failed') {
-    super(message, 401, 'AUTHENTICATION_FAILED');
+  constructor(message = HTTP_MESSAGE.UNAUTHORIZED) {
+    super(message, HTTP_STATUS.UNAUTHORIZED, ERROR_CODE.AUTHENTICATION_FAILED);
   }
 }
 
 class ForbiddenError extends AppError {
-  // 403 Forbidden – user lacks permission to access resource
-  constructor(message = 'Forbidden') {
-    super(message, 403, 'FORBIDDEN');
+  constructor(message = HTTP_MESSAGE.FORBIDDEN) {
+    super(message, HTTP_STATUS.FORBIDDEN, ERROR_CODE.FORBIDDEN);
   }
 }
 
 class NotFoundError extends AppError {
-  // 404 Not Found – requested resource does not exist
-  constructor(message = 'Resource not found') {
-    super(message, 404, 'NOT_FOUND');
+  constructor(message = HTTP_MESSAGE.NOT_FOUND) {
+    super(message, HTTP_STATUS.NOT_FOUND, ERROR_CODE.NOT_FOUND);
   }
 }
 
 class ConflictError extends AppError {
-  // 409 Conflict – request conflicts with current state of resource
-  constructor(message = 'Conflict') {
-    super(message, 409, 'CONFLICT');
+  constructor(message = HTTP_MESSAGE.CONFLICT) {
+    super(message, HTTP_STATUS.CONFLICT, ERROR_CODE.CONFLICT);
   }
 }
 
 class ValidationError extends AppError {
-  // 422 Unprocessable Entity – data validation failed
-  constructor(message = 'Validation failed') {
-    super(message, 422, 'VALIDATION_ERROR');
+  constructor(message = HTTP_MESSAGE.UNPROCESSABLE_ENTITY) {
+    super(message, HTTP_STATUS.UNPROCESSABLE_ENTITY, ERROR_CODE.VALIDATION_ERROR);
   }
 }
 
 class TooManyRequestsError extends AppError {
-  // 429 Too Many Requests – rate limiting exceeded
-  constructor(message = 'Too many requests') {
-    super(message, 429, 'TOO_MANY_REQUESTS');
+  constructor(message = HTTP_MESSAGE.TOO_MANY_REQUESTS) {
+    super(message, HTTP_STATUS.TOO_MANY_REQUESTS, ERROR_CODE.TOO_MANY_REQUESTS);
   }
 }
 
 class PayloadTooLargeError extends AppError {
-  // 413 Payload Too Large – request body exceeds allowed size
-  constructor(message = 'Payload too large') {
-    super(message, 413, 'PAYLOAD_TOO_LARGE');
+  constructor(message = HTTP_MESSAGE.PAYLOAD_TOO_LARGE) {
+    super(message, HTTP_STATUS.PAYLOAD_TOO_LARGE, ERROR_CODE.PAYLOAD_TOO_LARGE);
   }
 }
 
 class RequestTimeoutError extends AppError {
-  // 408 Request Timeout – server timed out waiting for client request
-  constructor(message = 'Request timeout') {
-    super(message, 408, 'REQUEST_TIMEOUT');
+  constructor(message = HTTP_MESSAGE.REQUEST_TIMEOUT) {
+    super(message, HTTP_STATUS.REQUEST_TIMEOUT, ERROR_CODE.REQUEST_TIMEOUT);
   }
 }
 
 // 5xx Server Errors
 
 class InternalServerError extends AppError {
-  // 500 Internal Server Error – generic server-side failure
-  constructor(message = 'Internal server error') {
-    super(message, 500, 'INTERNAL_SERVER_ERROR');
+  constructor(message = HTTP_MESSAGE.INTERNAL_SERVER_ERROR) {
+    super(message, HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_CODE.INTERNAL_SERVER_ERROR);
   }
 }
 
 class ServiceUnavailableError extends AppError {
-  // 503 Service Unavailable – server temporarily unable to handle request
-  constructor(message = 'Service unavailable') {
-    super(message, 503, 'SERVICE_UNAVAILABLE');
+  constructor(message = HTTP_MESSAGE.SERVICE_UNAVAILABLE) {
+    super(message, HTTP_STATUS.SERVICE_UNAVAILABLE, ERROR_CODE.SERVICE_UNAVAILABLE);
   }
 }
 
 class DatabaseError extends AppError {
-  // 500 Database Error – unexpected database failure
-  constructor(message = 'Database error') {
-    super(message, 500, 'DATABASE_ERROR');
+  constructor(message = HTTP_MESSAGE.INTERNAL_SERVER_ERROR) {
+    super(message, HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_CODE.DATABASE_ERROR);
   }
 }
 

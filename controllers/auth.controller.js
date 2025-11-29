@@ -12,4 +12,13 @@ const signup = catchAsync(async (req, res) => {
   });
 });
 
-module.exports = { signup };
+const getone = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+
+  return res.status(201).json({
+    status: 'success',
+    data: { user: user },
+  });
+});
+
+module.exports = { signup, getone };

@@ -1,4 +1,11 @@
 const HTTP_STATUS = {
+  // Success
+  OK: 200,
+  CREATED: 201,
+  ACCEPTED: 202,
+  NO_CONTENT: 204,
+
+  // Client errors
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
@@ -9,11 +16,19 @@ const HTTP_STATUS = {
   UNPROCESSABLE_ENTITY: 422,
   TOO_MANY_REQUESTS: 429,
 
+  // Server errors
   INTERNAL_SERVER_ERROR: 500,
   SERVICE_UNAVAILABLE: 503,
 };
 
 const HTTP_MESSAGE = {
+  // Success messages
+  OK: 'Request successful',
+  CREATED: 'Resource created successfully',
+  ACCEPTED: 'Request accepted',
+  NO_CONTENT: 'No content',
+
+  // Client errors
   BAD_REQUEST: 'Bad request',
   UNAUTHORIZED: 'Authentication failed',
   FORBIDDEN: 'Forbidden',
@@ -24,6 +39,7 @@ const HTTP_MESSAGE = {
   UNPROCESSABLE_ENTITY: 'Validation failed',
   TOO_MANY_REQUESTS: 'Too many requests',
 
+  // Server errors
   INTERNAL_SERVER_ERROR: 'Internal server error',
   SERVICE_UNAVAILABLE: 'Service unavailable',
 };

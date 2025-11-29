@@ -35,6 +35,7 @@ const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
     message: err.message,
+    code: err.code,
     stack: err.stack,
     error: err,
   });
@@ -47,6 +48,7 @@ const sendErrorProd = (err, res) => {
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,
+      code: err.code,
       message: err.message,
     });
   } else {
@@ -64,6 +66,9 @@ const sendErrorProd = (err, res) => {
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
   err.status = err.status || RESPONSE_STATUS.ERROR;
+
+  console.log('--------------------');
+  console.log(err);
 
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, res);

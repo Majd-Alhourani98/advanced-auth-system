@@ -2,7 +2,7 @@ const express = require('express');
 const morgan = require('morgan');
 
 const authRouter = require('./routes/auth.routes');
-const AppError = require('./errors/AppError');
+const { NotFoundError } = require('./errors/AppError');
 const globalErrorHandler = require('./middlewares/globalErrorHandler.middleware');
 
 // Express application
@@ -26,7 +26,7 @@ app.get('/health', (req, res) => {
 app.use('/api/v1/auth', authRouter);
 
 app.all('*', (req, res, next) => {
-  return next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
+  return next(new NotFoundError(`Can't find ${req.originalUrl} on this server`));
 });
 
 app.use(globalErrorHandler);

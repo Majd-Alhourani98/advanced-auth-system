@@ -1,5 +1,26 @@
 import transporter from '../config/email.js';
 
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+const sendEmailWithRetry = async (options, retries = 3, delay = 2000) => {
+  for (let attempts = 1; attempts <= retries; attempts++) {
+    try {
+      await sendEmail(options);
+      console.log('Email sent successfully');
+      return true; // stop retrying if successful
+    } catch (error) {
+      console.log(`Attempt ${attempts} failed: ${error.message}`);
+      if (attempts === retries) {
+        console.log('Failed to send email after all retries');
+        return false;
+      }
+    }
+
+    //   await new Promise(resolve => setTimeout(resolve, delay));
+    await sleep(delay);
+  }
+};
+
 const sendEmail = async ({ to, subject, text, html }) => {
   await transporter.sendMail({
     from: `'My App' <${process.env.EMAIL_FROM}>`,
@@ -21,7 +42,7 @@ export const sendVerificationEmail = async (user, verifyMethod, token, otp) => {
           : `Your OTP for email verification is: ${otp}`,
     };
 
-    await sendEmail(emailOptions);
+    const success = await sendEmailWithRetry(emailOptions);
   } catch (error) {
     // 5️⃣ Rollback verification fields if email fails
     [

@@ -2,10 +2,10 @@ import mongoose from 'mongoose';
 import buildDatabaseURI from '../utils/buildDatabaseURI.js';
 
 // Localhost MongoDB connection
-// const DB_URI = 'mongodb://127.0.0.1:27017/auth_db';
+const DB_URI = 'mongodb://127.0.0.1:27017/auth_db';
 
 const { DATABASE_USERNAME, DATABASE_PASSWORD, DATABASE_NAME, DATABASE_URL } = process.env;
-const DB_URI = buildDatabaseURI(DATABASE_USERNAME, DATABASE_PASSWORD, DATABASE_NAME, DATABASE_URL);
+// const DB_URI = buildDatabaseURI(DATABASE_USERNAME, DATABASE_PASSWORD, DATABASE_NAME, DATABASE_URL);
 
 const connectDB = async () => {
   try {

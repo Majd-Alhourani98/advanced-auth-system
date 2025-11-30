@@ -67,9 +67,6 @@ export default (err, req, res, next) => {
   err.statusCode = err.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
   err.status = err.status || RESPONSE_STATUS.ERROR;
 
-  console.log('--------------------');
-  console.log(err);
-
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === 'production') {

@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 import argon2 from 'argon2';
 import mongoose from 'mongoose';
 import { nanoid } from 'nanoid';
@@ -95,13 +97,38 @@ userSchema.pre('save', async function () {
 
     // Check if username exists, if yes → add random suffix
     while (await mongoose.models.User.findOne({ username: candidate })) {
-      candidate = `${base}_${nanoid(5)}`;
+      candidate = `${base}_${nanoid(5)}`.toLowerCase();
     }
 
     // Save the unique username
     this.username = candidate;
   }
 });
+
+const getExpiryTimestamp = durationMs => {
+  return Date.now() + durationMs;
+};
+
+userSchema.methods.generateEmailVerificationToken = function (length = 32, expiryDuratoinMs = 10 * 60 * 1000) {
+  const token = crypto.randomBytes(length).toString('hex');
+  this.emailVerificationToken = crypto.createHash('sha256').update(token).digest('hex');
+  this.emailVerificationTokenExpires = getExpiryTimestamp(expiryDuratoinMs);
+
+  return token;
+};
+
+userSchema.methods.generateEmailVerificationOTP = function (length = 6, expiryDuratoinMs = 10 * 60 * 1000) {
+  let otp = '';
+
+  for (let i = 0; i < length; i++) {
+    otp += crypto.randomInt(0, 10);
+  }
+
+  this.emailVerificationOTP = crypto.createHash('sha256').update(otp).digest('hex');
+  this.emailVerificationOTPExpires = getExpiryTimestamp(expiryDuratoinMs);
+
+  return otp;
+};
 
 const User = mongoose.model('User', userSchema);
 

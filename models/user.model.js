@@ -53,6 +53,21 @@ const userSchema = new mongoose.Schema(
 
     emailVerificationOTP: String,
     emailVerificationOTPExpires: Date,
+
+    lastVerificationEmailSentAt: {
+      type: Date,
+      default: null,
+    },
+
+    verificationResendCount: {
+      type: Number,
+      default: 0,
+    },
+
+    nextAllowedVerificationAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

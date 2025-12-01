@@ -32,19 +32,17 @@ const sendEmail = async ({ to, subject, text, html }) => {
 };
 
 export const sendVerificationEmail = async (user, verifyMethod, token, otp) => {
-  try {
-    const emailOptions = {
-      to: user.email,
-      subject: 'Verify your email',
-      text:
-        verifyMethod === 'link'
-          ? `Click this link to verify your email: ${process.env.FRONTEND_URL}/api/v1/verify-email?token=${token}&email=${user.email}`
-          : `Your OTP for email verification is: ${otp}`,
-    };
+  const emailOptions = {
+    to: user.email,
+    subject: 'Verify your email',
+    text:
+      verifyMethod === 'link'
+        ? `Click this link to verify your email: ${process.env.FRONTEND_URL}/api/v1/verify-email?token=${token}&email=${user.email}`
+        : `Your OTP for email verification is: ${otp}`,
+  };
 
-    const success = await sendEmailWithRetry(emailOptions);
-  } catch (error) {
-    // 5️⃣ Rollback verification fields if email fails
+  const success = await sendEmailWithRetry(emailOptions);
+  if (!success) {
     [
       'emailVerificationOTP',
       'emailVerificationOTPExpires',
@@ -52,7 +50,6 @@ export const sendVerificationEmail = async (user, verifyMethod, token, otp) => {
       'emailVerificationTokenExpires',
     ].forEach(field => (user[field] = undefined));
 
-    console.log(error);
     await user.save({ validateBeforeSave: false });
   }
 };

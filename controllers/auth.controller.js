@@ -55,51 +55,37 @@ export const resendVerification = catchAsync(async (req, res, next) => {
   });
 });
 
-export const verifyEmailLink = catchAsync(async (req, res, next) => {
-  const { token, email } = req.query;
-  if (!token) return next(new BadRequestError('Token is required'));
+export const verifyEmail = catchAsync(async (req, res, next) => {
+  const { otp, email: bodyEmail } = req.body;
+  const { token, email: queryEmail } = req.query;
 
-  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  if ((token && otp) || (!token && !otp)) {
+    return next(new BadRequestError('Provide either token or OTP, not both.'));
+  }
 
-  const user = await User.findOne({ email });
+  if (token) {
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
-  if (!user) return next(new NotFoundError('Not user found with this email.'));
-  if (user.isEmailVerified) return next(new ConflictError('User already verified'));
+    user = await User.findOne({ email: queryEmail });
+    if (!user) return next(new NotFoundError('No user found with this email.'));
+    if (user.isEmailVerified) return next(new ConflictError('User already verified'));
 
-  if (user.emailVerificationToken !== hashedToken || user.emailVerificationOTPExpires <= Date.now())
-    return next(new BadRequestError('Token is invalid or expired'));
+    if (user.emailVerificationToken !== hashedToken || user.emailVerificationTokenExpires <= Date.now())
+      return next(new BadRequestError('Token is invalid or expired'));
+  } else if (otp) {
+    const hashedOTP = crypto.createHash('sha256').update(otp).digest('hex');
 
-  user.isEmailVerified = true;
-  user.emailVerificationToken = undefined;
-  user.emailVerificationTokenExpires = undefined;
-  user.emailVerificationOTP = undefined;
-  user.emailVerificationOTPExpires = undefined;
-  user.lastVerificationEmailSentAt = null;
-  user.verificationResendCount = 0;
-  user.nextAllowedVerificationAt = null;
+    user = await User.findOne({ email: bodyEmail });
+    if (!user) return next(new NotFoundError('No user found with this email.'));
+    if (user.isEmailVerified) return next(new ConflictError('User already verified'));
 
-  await user.save({ validateBeforeSave: false });
+    if (user.emailVerificationOTP !== hashedOTP || user.emailVerificationOTPExpires <= Date.now())
+      return next(new BadRequestError('OTP is invalid or expired'));
+  } else {
+    return next(new BadRequestError('Insufficient data for verification'));
+  }
 
-  res.status(HTTP_STATUS.OK).json({
-    status: RESPONSE_STATUS.SUCCESS,
-    message: 'Email verified successfully',
-  });
-});
-
-export const verifyEmailOTP = catchAsync(async (req, res, next) => {
-  const { email, otp } = req.body;
-  if (!email || !otp) return next(new BadRequestError('Email and OTP are required'));
-
-  const hashedOTP = crypto.createHash('sha256').update(otp).digest('hex');
-
-  const user = await User.findOne({ email });
-
-  if (!user) return next(new NotFoundError('Not user found with this email.'));
-  if (user.isEmailVerified) return next(new ConflictError('User already verified'));
-
-  if (user.emailVerificationOTP !== hashedOTP || user.emailVerificationOTPExpires <= Date.now())
-    return next(new BadRequestError('OTP is invalid or expired'));
-
+  // Update user
   user.isEmailVerified = true;
   user.emailVerificationToken = undefined;
   user.emailVerificationTokenExpires = undefined;

@@ -3,6 +3,7 @@ import catchAsync from '../utils/catchAsync.js';
 import { RESPONSE_STATUS, HTTP_STATUS } from '../constants/httpConstants.js';
 import { sendVerificationEmail } from '../email/sendEmail.js';
 import { ConflictError, NotFoundError, TooManyRequestsError } from '../errors/AppError.js';
+import { calculateCooldown } from '../utils/calculateCooldown.js';
 
 export const signup = catchAsync(async (req, res, next) => {
   const { name, email, password, passwordConfirm, verifyMethod = 'otp' } = req.body;
@@ -24,19 +25,6 @@ export const signup = catchAsync(async (req, res, next) => {
     data: { user },
   });
 });
-
-const calculateCooldown = resendCount => {
-  const baseCooldown = 10 * 1000; // 1 minute
-  const maxCooldown = 60 * 60 * 1000; // 1 hour
-
-  if (resendCount >= 5) {
-    // If user hits 5 resends → max cooldown 1 hour
-    return maxCooldown;
-  }
-
-  // Otherwise → exponential cooldown (1 min, 2 min, 3 min, etc.)
-  return baseCooldown * resendCount;
-};
 
 export const resendVerification = catchAsync(async (req, res, next) => {
   const { email, verifyMethod = 'otp' } = req.body;

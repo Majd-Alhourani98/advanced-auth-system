@@ -8,4 +8,5 @@ router.route('/signup').post(validationMiddleware.signupValidation, authControll
 router.route('/resend-verification').post(authController.resendVerification);
 router.route('/verifiy').get(authController.verifyEmail);
 router.route('/verifiy').post(authController.verifyEmail);
+router.route('/login').post(authController.login);
 export default router;

@@ -5,6 +5,7 @@ import { RESPONSE_STATUS, HTTP_STATUS } from '../constants/httpConstants.js';
 import { sendVerificationEmail } from '../email/sendEmail.js';
 import { BadRequestError, ConflictError, NotFoundError, TooManyRequestsError } from '../errors/AppError.js';
 import { calculateCooldown } from '../utils/calculateCooldown.js';
+import argon2 from 'argon2';
 
 export const signup = catchAsync(async (req, res, next) => {
   const { name, email, password, passwordConfirm, verifyMethod = 'otp' } = req.body;
@@ -102,5 +103,30 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
   res.status(HTTP_STATUS.OK).json({
     status: RESPONSE_STATUS.SUCCESS,
     message: 'Email verified successfully',
+  });
+});
+
+export const login = catchAsync(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  // 1. Validate input
+  if (!email || !password) return next(new BadRequestError('Email and password are required'));
+
+  // 2. Find user by email
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) return next(new NotFoundError('Email or password is incorrect'));
+
+  // 3. Check if email is verified
+  if (!user.isEmailVerified) return next(new ConflictError('Email or password is incorrect'));
+
+  // 4. Verify password
+  const isPasswordCorrect = await user.verifyPassword(password);
+  if (!isPasswordCorrect) return next(new BadRequestError('Email or password is incorrect'));
+
+  // 5. Respond with user data (sanitized by model)
+  res.status(HTTP_STATUS.OK).json({
+    status: RESPONSE_STATUS.SUCCESS,
+    message: 'Login successful',
+    data: { user },
   });
 });

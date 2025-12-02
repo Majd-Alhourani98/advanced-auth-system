@@ -162,6 +162,10 @@ userSchema.methods.applyVerificationMethod = function (method = 'otp') {
   };
 };
 
+userSchema.methods.verifyPassword = async function (candidatePassword) {
+  return await argon2.verify(this.password, candidatePassword);
+};
+
 const User = mongoose.model('User', userSchema);
 
 export default User;

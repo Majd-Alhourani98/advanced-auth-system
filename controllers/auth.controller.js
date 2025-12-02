@@ -3,7 +3,7 @@ import User from '../models/user.model.js';
 import catchAsync from '../utils/catchAsync.js';
 import { RESPONSE_STATUS, HTTP_STATUS } from '../constants/httpConstants.js';
 import { sendVerificationEmail } from '../email/sendEmail.js';
-import { AppError, BadRequestError, ConflictError, NotFoundError, TooManyRequestsError } from '../errors/AppError.js';
+import { BadRequestError, ConflictError, NotFoundError, TooManyRequestsError } from '../errors/AppError.js';
 import { calculateCooldown } from '../utils/calculateCooldown.js';
 
 export const signup = catchAsync(async (req, res, next) => {
@@ -62,6 +62,8 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
   if ((token && otp) || (!token && !otp)) {
     return next(new BadRequestError('Provide either token or OTP, not both.'));
   }
+
+  let user;
 
   if (token) {
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');

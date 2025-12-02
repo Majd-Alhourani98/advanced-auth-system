@@ -1,4 +1,6 @@
 import transporter from '../config/email.js';
+import { generateOtpEmailTemplate } from './emailTemplates/generateOtpEmailTemplate.js';
+import { generateLinkEmailTemplate } from './emailTemplates/generateLinkEmailTemplate.js';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -27,7 +29,7 @@ const sendEmail = async ({ to, subject, text, html }) => {
     to,
     subject,
     text,
-    // html
+    html,
   });
 };
 
@@ -35,10 +37,15 @@ export const sendVerificationEmail = async (user, verifyMethod, token, otp) => {
   const emailOptions = {
     to: user.email,
     subject: 'Verify your email',
-    text:
+    // text:
+    //   verifyMethod === 'link'
+    //     ? `Click this link to verify your email: ${process.env.FRONTEND_URL}/api/v1/verify-email?token=${token}&email=${user.email}`
+    //     : `Your OTP for email verification is: ${otp}`,
+
+    html:
       verifyMethod === 'link'
-        ? `Click this link to verify your email: ${process.env.FRONTEND_URL}/api/v1/verify-email?token=${token}&email=${user.email}`
-        : `Your OTP for email verification is: ${otp}`,
+        ? generateLinkEmailTemplate({ name: user.name, token: token, email: user.email })
+        : generateOtpEmailTemplate({ name: user.name, otp: otp }),
   };
 
   const success = await sendEmailWithRetry(emailOptions);

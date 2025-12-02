@@ -69,7 +69,34 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    loginAttempts: {
+      type: Number,
+      default: 0,
+    },
+
+    nextAllowedLoginAt: {
+      type: Date,
+      default: null,
+    },
+
+    loginHistory: [
+      {
+        success: {
+          type: Boolean,
+          required: true,
+        },
+        ip: String,
+        userAgent: String,
+        geoLocation: String, // e.g., "New York, US"
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
+
   {
     timestamps: true,
   }
@@ -87,14 +114,22 @@ const sanitizeFields = [
   '__v',
   'createdAt',
   'updatedAt',
+  'loginHistory',
+  'lastVerificationEmailSentAt',
+  'verificationResendCount',
+  'nextAllowedVerificationAt',
+  'loginAttempts',
 ];
 
+// Ensure virtuals are included when converting to JSON
 userSchema.set('toJSON', {
+  virtuals: true,
   transform: (doc, ret) => {
     sanitizeFields.forEach(field => delete ret[field]);
     return ret;
   },
 });
+userSchema.set('toObject', { virtuals: true });
 
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
@@ -165,6 +200,56 @@ userSchema.methods.applyVerificationMethod = function (method = 'otp') {
 userSchema.methods.verifyPassword = async function (candidatePassword) {
   return await argon2.verify(this.password, candidatePassword);
 };
+
+userSchema.methods.resetLoginAttempts = async function () {
+  this.loginAttempts = 0;
+  this.nextAllowedLoginAt = null;
+  await this.save({ validateBeforeSave: false });
+};
+
+userSchema.methods.incrementLoginAttempts = async function () {
+  this.loginAttempts = (this.loginAttempts || 0) + 1;
+
+  // Block login for 1 hour after 10 failed attempts
+  if (this.loginAttempts >= 10) {
+    this.nextAllowedLoginAt = Date.now() + 60 * 60 * 1000;
+    this.loginAttempts = 0;
+  }
+
+  await this.save({ validateBeforeSave: false });
+};
+
+userSchema.methods.isBlocked = function () {
+  return this.nextAllowedLoginAt && Date.now() < this.nextAllowedLoginAt;
+};
+
+userSchema.methods.getRemainingBlockMinutes = function () {
+  return Math.ceil((this.nextAllowedLoginAt - Date.now()) / (1000 * 60));
+};
+
+userSchema.methods.addLoginHistoryEntry = function (success, ip, userAgent, geoLocation) {
+  this.loginHistory.push({
+    success,
+    ip,
+    userAgent,
+    geoLocation,
+    timestamp: Date.now(),
+  });
+
+  if (this.loginHistory.length > 20) {
+    this.loginHistory.splice(0, this.loginHistory.length - 20);
+  }
+};
+
+userSchema.virtual('lastFailedLoginAt').get(function () {
+  const failures = this.loginHistory.filter(entry => !entry.success);
+  return failures.length ? failures[failures.length - 1].timestamp : null;
+});
+
+userSchema.virtual('lastLoginAt').get(function () {
+  const successes = this.loginHistory.filter(entry => entry.success);
+  return successes.length ? successes[successes.length - 1].timestamp : null;
+});
 
 const User = mongoose.model('User', userSchema);
 

@@ -5,7 +5,8 @@ import { RESPONSE_STATUS, HTTP_STATUS } from '../constants/httpConstants.js';
 import { sendVerificationEmail } from '../email/sendEmail.js';
 import { BadRequestError, ConflictError, NotFoundError, TooManyRequestsError } from '../errors/AppError.js';
 import { calculateCooldown } from '../utils/calculateCooldown.js';
-import argon2 from 'argon2';
+
+import geoip from 'geoip-lite';
 
 export const signup = catchAsync(async (req, res, next) => {
   const { name, email, password, passwordConfirm, verifyMethod = 'otp' } = req.body;
@@ -108,6 +109,8 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
 
 export const login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
+  const ip = '91.151.226.72';
+  const userAgent = req.get('User-Agent');
 
   // 1. Validate input
   if (!email || !password) return next(new BadRequestError('Email and password are required'));
@@ -116,14 +119,34 @@ export const login = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email }).select('+password');
   if (!user) return next(new NotFoundError('Email or password is incorrect'));
 
-  // 3. Check if email is verified
-  if (!user.isEmailVerified) return next(new ConflictError('Email or password is incorrect'));
+  const geo = geoip.lookup(ip);
+  const geoLocation = geo ? `${geo.city || 'Unknown'}, ${geo.country || 'Unknown'}` : '';
+
+  // 3. Check if user is temporarily blocked
+  if (user.isBlocked()) {
+    const remaining = user.getRemainingBlockMinutes();
+    user.addLoginHistoryEntry(false, ip, userAgent, geoLocation);
+    await user.save({ validateBeforeSave: false });
+
+    return next(new BadRequestError(`Too many failed login attempts. Try again in ${remaining} minutes`));
+  }
 
   // 4. Verify password
   const isPasswordCorrect = await user.verifyPassword(password);
-  if (!isPasswordCorrect) return next(new BadRequestError('Email or password is incorrect'));
 
-  // 5. Respond with user data (sanitized by model)
+  if (!isPasswordCorrect) {
+    user.addLoginHistoryEntry(false, ip, userAgent, geoLocation);
+    await user.incrementLoginAttempts();
+    return next(new BadRequestError('Email or password is incorrect'));
+  }
+
+  user.addLoginHistoryEntry(true, ip, userAgent, geoLocation);
+  await user.resetLoginAttempts();
+
+  // 5. Check if email is verified
+  if (!user.isEmailVerified) return next(new ConflictError('Email or password is incorrect'));
+
+  // 6. Respond with user data (sanitized by model)
   res.status(HTTP_STATUS.OK).json({
     status: RESPONSE_STATUS.SUCCESS,
     message: 'Login successful',
